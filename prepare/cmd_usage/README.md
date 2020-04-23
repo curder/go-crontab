@@ -1,0 +1,2 @@
+- [使用exec执行系统命令](/prepare/cmd_usage/demo/main.go)
+- [杀死子进程](/prepare/cmd_usage/demo2/main.go)
