@@ -5,12 +5,12 @@ import "encoding/json"
 type Job struct {
     Name     string `json:"name"`     // 任务名
     Command  string `json:"command"`  // shell命令
-    CronExpr string `json:"cronExpr"` // cron表达式
+    CronExpr string `json:"cron_expr"` // cron表达式
 }
 
 // 定义HTTP响应接口结构体
 type Response struct {
-    ErrorNumber int         `json:"errorNumber"`
+    ErrorNumber int         `json:"error_number"`
     Message     string      `json:"message"`
     Data        interface{} `json:"data"`
 }
