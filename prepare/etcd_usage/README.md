@@ -31,6 +31,7 @@ docker exec etcd-gcr-v3.3.20 /bin/sh -c "ETCDCTL_API=3 /usr/local/bin/etcdctl en
 docker exec etcd-gcr-v3.3.20 /bin/sh -c "ETCDCTL_API=3 /usr/local/bin/etcdctl put foo bar" # 存值
 docker exec etcd-gcr-v3.3.20 /bin/sh -c "ETCDCTL_API=3 /usr/local/bin/etcdctl get foo" # 取值
 docker exec etcd-gcr-v3.3.20 /bin/sh -c "ETCDCTL_API=3 /usr/local/bin/etcdctl del foo" # 删除值
+docker exec etcd-gcr-v3.3.20 /bin/sh -c "ETCDCTL_API=3 /usr/local/bin/etcdctl get "/cron/jobs/" --prefix" # 按值前缀匹配对应的KV
 ```
 
 ```
