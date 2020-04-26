@@ -20,9 +20,11 @@ var (
 // 初始化服务
 func InitAPiServer() (err error) {
     var (
-        mux        *http.ServeMux
-        listener   net.Listener
-        httpServer *http.Server
+        mux           *http.ServeMux
+        listener      net.Listener
+        httpServer    *http.Server
+        staticDir     http.Dir     // 静态文件根目录
+        staticHandler http.Handler // 静态文件回调
     )
 
     // 配置路由
@@ -31,6 +33,11 @@ func InitAPiServer() (err error) {
     mux.HandleFunc("/job/delete", handleJobDelete) // 删除任务
     mux.HandleFunc("/job/list", handleJobList)     // 任务列表
     mux.HandleFunc("/job/kill", handlerJobKill)    // 杀死任务
+
+    // 静态文件目录
+    staticDir = http.Dir(GConfig.WebRoot)
+    staticHandler = http.FileServer(staticDir)
+    mux.Handle("/", http.StripPrefix("/", staticHandler))
 
     // 启动TCD监听
     if listener, err = net.Listen("tcp", ":"+strconv.Itoa(GConfig.APiPort)); err != nil {

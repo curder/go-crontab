@@ -12,5 +12,8 @@
   "etcdEndPoints": ["192.168.205.10:2379"],
 
   "etcd连接超时时间": "单位毫秒",
-  "etcdTimeout": 5000
+  "etcdTimeout": 5000,
+
+  "web页面根目录": "静态页面、券后段分离开发",
+  "webRoot": "./webroot"
 }

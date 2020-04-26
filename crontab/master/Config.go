@@ -1,41 +1,42 @@
 package master
 
 import (
-	"encoding/json"
-	"io/ioutil"
+    "encoding/json"
+    "io/ioutil"
 )
 
 // 配置结构体
 type Config struct {
-	APiPort         int `json:"apiPort"`
-	ApiReadTimeout  int `json:"apiReadTimeout"`
-	ApiWriteTimeout int `json:"apiWriteTimeout"`
-	EtcdEndPoints []string `json:"etcdEndPoints"`
-	EtcdDialTimeout int `json:"etcdDialTimeout"`
+    APiPort         int      `json:"apiPort"`
+    ApiReadTimeout  int      `json:"apiReadTimeout"`
+    ApiWriteTimeout int      `json:"apiWriteTimeout"`
+    EtcdEndPoints   []string `json:"etcdEndPoints"`
+    EtcdDialTimeout int      `json:"etcdDialTimeout"`
+    WebRoot         string   `json:"webRoot"`
 }
 
 var (
-	GConfig *Config
+    GConfig *Config
 )
 
 func InitConfig(filename string) (err error) {
-	var (
-		content []byte
-		config  Config
-	)
+    var (
+        content []byte
+        config  Config
+    )
 
-	// 读取配置文件
-	if content, err = ioutil.ReadFile(filename); err != nil {
-		return
-	}
+    // 读取配置文件
+    if content, err = ioutil.ReadFile(filename); err != nil {
+        return
+    }
 
-	// JSON反序列化
-	if err = json.Unmarshal(content, &config); err != nil {
-		return
-	}
+    // JSON反序列化
+    if err = json.Unmarshal(content, &config); err != nil {
+        return
+    }
 
-	// 赋值单例
-	GConfig = &config
+    // 赋值单例
+    GConfig = &config
 
-	return
+    return
 }
