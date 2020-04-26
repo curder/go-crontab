@@ -29,6 +29,7 @@ func InitAPiServer() (err error) {
     mux = http.NewServeMux()
     mux.HandleFunc("/job/save", handleJobSave)
     mux.HandleFunc("/job/delete", handleJobDelete)
+    mux.HandleFunc("/job/list", handleJobList)
 
     // 启动TCD监听
     if listener, err = net.Listen("tcp", ":"+strconv.Itoa(GConfig.APiPort)); err != nil {
@@ -118,6 +119,8 @@ func handleJobDelete(w http.ResponseWriter, r *http.Request) {
     if oldJob, err = GJobMgr.DeleteJob(name); err != nil {
         goto ERR
     }
+
+    // 返回正常响应
     if bytes, err = common.BuildResponse(0, "success", oldJob); err == nil {
         _, _ = w.Write(bytes)
     }
@@ -125,6 +128,32 @@ func handleJobDelete(w http.ResponseWriter, r *http.Request) {
     return
 
 ERR:
+    // 返回异常响应
+    if bytes, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
+        _, _ = w.Write(bytes)
+    }
+}
+
+// 任务列表
+func handleJobList(w http.ResponseWriter, r *http.Request) {
+    var (
+        jobs  []*common.Job
+        err   error
+        bytes []byte
+    )
+    if jobs, err = GJobMgr.ListJobs(); err != nil {
+        goto ERR
+    }
+
+    // 正常应答
+    if bytes, err = common.BuildResponse(0, "success", jobs); err == nil {
+        _, _ = w.Write(bytes)
+    }
+
+    return
+
+ERR:
+    // 返回异常响应
     if bytes, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
         _, _ = w.Write(bytes)
     }

@@ -5,6 +5,7 @@ import (
     "encoding/json"
     "github.com/curder/go-crontab/crontab/common"
     "go.etcd.io/etcd/clientv3"
+    "go.etcd.io/etcd/mvcc/mvccpb"
     "time"
 )
 
@@ -112,6 +113,39 @@ func (j *JobMgr) DeleteJob(name string) (oldJob *common.Job, err error) {
             return
         }
         oldJob = &oldJobObject
+    }
+
+    return
+}
+
+// 任务列表
+func (j *JobMgr) ListJobs() (jobList []*common.Job, err error) {
+    var (
+        dirKey      string
+        getResponse *clientv3.GetResponse
+        kvPair      *mvccpb.KeyValue
+        job         *common.Job
+    )
+
+    // 任务保存的目录
+    dirKey = common.JOB_SAVE_DIR
+
+    // 获取目录下的所有任务信息
+    if getResponse, err = j.kv.Get(context.TODO(), dirKey, clientv3.WithPrefix()); err != nil {
+        return
+    }
+
+    // 初始化数组空间
+    jobList = make([]*common.Job, 0)
+
+    // 遍历所有任务并反序列化
+    for _, kvPair = range getResponse.Kvs {
+        job = &common.Job{}
+        if err = json.Unmarshal(kvPair.Value, job); err != nil {
+            err = nil
+            continue
+        }
+        jobList = append(jobList, job)
     }
 
     return
