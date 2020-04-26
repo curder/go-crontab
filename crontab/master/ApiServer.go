@@ -27,9 +27,10 @@ func InitAPiServer() (err error) {
 
     // 配置路由
     mux = http.NewServeMux()
-    mux.HandleFunc("/job/save", handleJobSave)
-    mux.HandleFunc("/job/delete", handleJobDelete)
-    mux.HandleFunc("/job/list", handleJobList)
+    mux.HandleFunc("/job/save", handleJobSave)     // 保存任务
+    mux.HandleFunc("/job/delete", handleJobDelete) // 删除任务
+    mux.HandleFunc("/job/list", handleJobList)     // 任务列表
+    mux.HandleFunc("/job/kill", handlerJobKill)    // 杀死任务
 
     // 启动TCD监听
     if listener, err = net.Listen("tcp", ":"+strconv.Itoa(GConfig.APiPort)); err != nil {
@@ -98,7 +99,7 @@ ERR:
     }
 }
 
-// 删除任务接口 POST /job/delete "name=jobName"
+// 删除任务接口 POST /job/delete name=jobName
 func handleJobDelete(w http.ResponseWriter, r *http.Request) {
     var (
         name   string
@@ -134,7 +135,7 @@ ERR:
     }
 }
 
-// 任务列表
+// 任务列表 GET /job/list
 func handleJobList(w http.ResponseWriter, r *http.Request) {
     var (
         jobs  []*common.Job
@@ -147,6 +148,41 @@ func handleJobList(w http.ResponseWriter, r *http.Request) {
 
     // 正常应答
     if bytes, err = common.BuildResponse(0, "success", jobs); err == nil {
+        _, _ = w.Write(bytes)
+    }
+
+    return
+
+ERR:
+    // 返回异常响应
+    if bytes, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
+        _, _ = w.Write(bytes)
+    }
+}
+
+// 杀死任务 POST /job/kill name=jobName
+func handlerJobKill(w http.ResponseWriter, r *http.Request) {
+    var (
+        err   error
+        name  string
+        bytes []byte
+    )
+
+    // 解析POST表单
+    if err = r.ParseForm(); err != nil {
+        goto ERR
+    }
+
+    // 任务名
+    name = r.PostForm.Get("name")
+
+    // 杀死任务
+    if err = GJobMgr.KillJob(name); err != nil {
+        goto ERR
+    }
+
+    // 正常应答
+    if bytes, err = common.BuildResponse(0, "sccess", nil); err == nil {
         _, _ = w.Write(bytes)
     }
 
