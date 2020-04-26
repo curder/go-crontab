@@ -23,7 +23,7 @@
 
     <div class="row">
         <div class="col-md-12">
-            <button type="button" class="btn btn-primary">新建任务</button>
+            <button id="create-job" type="button" class="btn btn-primary">新建任务</button>
         </div>
     </div>
 
@@ -46,6 +46,38 @@
             </div>
         </div>
     </div>
+
+    <div id="modal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">编辑任务</h4>
+                </div>
+                <div class="modal-body">
+                    <form action="">
+                        <div class="form-group">
+                            <label for="modal-name">任务名称</label>
+                            <input type="text" class="form-control" id="modal-name" placeholder="任务名称"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-command">Shell命令</label>
+                            <input type="text" class="form-control" id="modal-command" placeholder="Shell命令"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-cron-expr">Cron表达式</label>
+                            <input type="text" class="form-control" id="modal-cron-expr" placeholder="Cron表达式"/>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default focus:outline-none" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary focus:outline-none" id="save-job-handle">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <script>
     // 页面加载完毕后回调
@@ -53,36 +85,91 @@
         fetchJobList()
 
         // 使用js的委托机制，绑定按钮事件处理函数
-        $("#job-list").on("click", ".edit-job-handle", editJobHandle)
+        $("#job-list").on("click", ".job-handle", editJobHandle)
             .on("click", ".delete-job-handle", deleteJobHandle)
             .on("click", ".kill-job-handle", killJobHandle);
 
+        // 新建任务
+        $("#create-job").on("click", (event) => {
+            $("#modal-name").val("");
+            $("#modal-command").val("");
+            $("#modal-cron-expr").val("");
+            $("#modal").modal("show");
+        });
+
         // 编辑
         function editJobHandle(event) {
-            console.log(event)
+            let name = $(this).data("job-name");
+            let command = $(this).data('job-command');
+            let cron_expr = $(this).data("job-cron-expr");
+            $("#modal-name").val(name);
+            $("#modal-command").val(command);
+            $("#modal-cron-expr").val(cron_expr);
+
+            $("#modal").modal("show")
         };
 
         // 删除
         function deleteJobHandle(event) {
-            console.log(event)
+            let jobName = $(this).data("job-name");
+            $.ajax({
+                url: `/job/delete`,
+                type: "post",
+                dataType: "json",
+                data: {name: jobName},
+                complete: () => {
+                    setTimeout(() => {
+                        window.location.reload()
+                    }, 2000)
+                }
+            })
         };
 
         // 强杀
         function killJobHandle(event) {
-            console.log(event)
+            let jobName = $(this).data("job-name");
+            $.ajax({
+                url: `/job/kill`,
+                type: "post",
+                dataType: "json",
+                data: {name: jobName},
+                complete: () => {
+                    setTimeout(() => {
+                        window.location.reload()
+                    }, 2000)
+                }
+            })
         };
+
+        // 编辑保存事件
+        $("#save-job-handle").on("click", () => {
+            let jobInfo = {
+                name: $("#modal-name").val(),
+                command: $("#modal-command").val(),
+                cron_expr: $("#modal-cron-expr").val()
+            };
+            $.ajax({
+                url: `/job/save`,
+                type: `POST`,
+                dataType: `json`,
+                data: {job: JSON.stringify(jobInfo)},
+                complete() {
+                    setTimeout(() => {
+                        window.location.reload()
+                    }, 2000)
+                }
+            })
+        });
 
         // 获取任务列表
         function fetchJobList() {
             $.ajax({
                 url: "/job/list",
                 dataType: "json",
-                success: (response) => {
-                    if (response.error_number !== 0) {
+                success: ({error_number, data: jobList}) => {
+                    if (error_number !== 0) {
                         return
                     }
-                    let jobList = response.data;
-
                     // 清空列表
                     $("#job-list tbody").empty();
 
@@ -95,9 +182,9 @@
                             <td class="job-cron-expr"><code>${job.cron_expr}</code></td>
                             <td>
                                 <div class="btn-toolbar">
-                                    <div class="btn btn-xs btn-info edit-job-handle">编辑</div>
-                                    <div class="btn btn-xs btn-danger delete-job-handle">删除</div>
-                                    <div class="btn btn-xs btn-warning kill-job-handle">强杀</div>
+                                    <div data-job-name="${job.name}" data-job-command="${job.command}" data-job-cron-expr="${job.cron_expr}" class="btn btn-xs btn-info job-handle">编辑</div>
+                                    <div data-job-name="${job.name}" class="btn btn-xs btn-danger delete-job-handle">删除</div>
+                                    <div data-job-name="${job.name}" class="btn btn-xs btn-warning kill-job-handle">强杀</div>
                                     <div class="btn btn-xs btn-success">日志</div>
                                 </div>
                             </td>
@@ -108,8 +195,6 @@
             })
         }
     });
-
-
 </script>
 </body>
 </html>
