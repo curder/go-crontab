@@ -3,13 +3,13 @@
 ### Docker 启动
 
 ```
-sudo docker run -itd --name mongo -p 27017:27017 mongo
+sudo docker run -d --name mongo -p 27017:27017 mongo
 ```
 
 ### 连接MongoDB操作
 
 ```
-sudo docker run -it mongo mongo
+sudo docker exec -it mongo /bin/bash -c "mongo admin"
 ```
 
 ### 简单操作
