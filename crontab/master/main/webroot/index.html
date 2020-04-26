@@ -8,8 +8,8 @@
     <title>GoLang分布式Crontab</title>
     <link href="https://cdn.bootcss.com/tailwindcss/1.3.5/tailwind.min.css" rel="stylesheet">
     <link href="https://cdn.bootcss.com/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.bootcss.com/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="https://cdn.bootcss.com/jquery/3.5.0/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
 <body>
 <div class="container-fluid">
@@ -31,35 +31,85 @@
         <div class="col-md-12">
             <div class="panel panel-default">
                 <div class="panel-body">
-                    <table class="table table-striped">
+                    <table id="job-list" class="table table-striped">
                         <thead>
-                            <tr>
-                                <th>任务名称</th>
-                                <th>Shell命令</th>
-                                <th>Cron表达式</th>
-                                <th>操作</th>
-                            </tr>
+                        <tr>
+                            <th>任务名称</th>
+                            <th>Shell命令</th>
+                            <th>Cron表达式</th>
+                            <th>操作</th>
+                        </tr>
                         </thead>
-
-                        <tbody>
-                            <tr>
-                                <td class="job-name"><code>job1</code></td>
-                                <td class="job-command"><code>echo hello</code></td>
-                                <td class="job-cron-expr"><code>* * * * *</code></td>
-                                <td>
-                                    <div class="btn-toolbar">
-                                        <div class="btn btn-xs btn-info">编辑</div>
-                                        <div class="btn btn-xs btn-danger">删除</div>
-                                        <div class="btn btn-xs btn-warning">强杀</div>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<script>
+    // 页面加载完毕后回调
+    $(() => {
+        fetchJobList()
+
+        // 使用js的委托机制，绑定按钮事件处理函数
+        $("#job-list").on("click", ".edit-job-handle", editJobHandle)
+            .on("click", ".delete-job-handle", deleteJobHandle)
+            .on("click", ".kill-job-handle", killJobHandle);
+
+        // 编辑
+        function editJobHandle(event) {
+            console.log(event)
+        };
+
+        // 删除
+        function deleteJobHandle(event) {
+            console.log(event)
+        };
+
+        // 强杀
+        function killJobHandle(event) {
+            console.log(event)
+        };
+
+        // 获取任务列表
+        function fetchJobList() {
+            $.ajax({
+                url: "/job/list",
+                dataType: "json",
+                success: (response) => {
+                    if (response.error_number !== 0) {
+                        return
+                    }
+                    let jobList = response.data;
+
+                    // 清空列表
+                    $("#job-list tbody").empty();
+
+                    for (let i = 0, count = jobList.length; i < count; i++) {
+                        let job = jobList[i];
+
+                        let jobString = `<tr>
+                            <td class="job-name"><code>${job.name}</code></td>
+                            <td class="job-command"><code>${job.command}</code></td>
+                            <td class="job-cron-expr"><code>${job.cron_expr}</code></td>
+                            <td>
+                                <div class="btn-toolbar">
+                                    <div class="btn btn-xs btn-info edit-job-handle">编辑</div>
+                                    <div class="btn btn-xs btn-danger delete-job-handle">删除</div>
+                                    <div class="btn btn-xs btn-warning kill-job-handle">强杀</div>
+                                    <div class="btn btn-xs btn-success">日志</div>
+                                </div>
+                            </td>
+                        </tr>`;
+                        $("#job-list tbody").append(jobString)
+                    }
+                }
+            })
+        }
+    });
+
+
+</script>
 </body>
 </html>
