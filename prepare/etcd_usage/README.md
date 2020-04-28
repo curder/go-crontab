@@ -3,6 +3,8 @@
 ## 启动
 
 ```
+sudo mkdir -p /tmp/etcd-data.tmp
+
 sudo docker run \
   -d \
   -p 2379:2379 \
