@@ -28,6 +28,12 @@ func main() {
     if err = worker.InitConfig(configFile); err != nil {
         goto ERR
     }
+
+    // 启动任务调度器
+    if err = worker.InitScheduler(); err != nil {
+        goto ERR
+    }
+
     // 任务etcd管理器
     if err = worker.InitJobMgr(); err != nil {
         goto ERR
