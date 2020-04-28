@@ -83,7 +83,7 @@ func (j *JobMgr) watchJobs() (err error) {
         // 但序列化任务得到job
         if job, err = common.UnpackJob(kvpair.Value); err != nil {
             // 构建任务
-            jobEvent = common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
+            jobEvent = common.BuildJobEvent(common.JobEventSave, job)
 
             // TODO 把任务同步给Scheduler（调度协程）
         }
@@ -107,7 +107,7 @@ func (j *JobMgr) watchJobs() (err error) {
                     }
 
                     // 构造一个event事件
-                    jobEvent = common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
+                    jobEvent = common.BuildJobEvent(common.JobEventSave, job)
 
                     // 推送给scheduler
                 case mvccpb.DELETE: // 删除任务
@@ -117,7 +117,7 @@ func (j *JobMgr) watchJobs() (err error) {
 
                     job = &common.Job{Name: jobName,} // 构建一个包含名称的Job
                     //  构建删除event事件
-                    jobEvent = common.BuildJobEvent(common.JOB_EVENT_DELETE, job)
+                    jobEvent = common.BuildJobEvent(common.JobEventDelete, job)
 
                     // TODO 推送给scheduler
                 }

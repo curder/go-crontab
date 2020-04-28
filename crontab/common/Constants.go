@@ -8,8 +8,8 @@ const (
     JobKillerDir = `/cron/killer/`
 
     // 保存任务事件
-    JOB_EVENT_SAVE = 1
+    JobEventSave = 1
 
     // 删除任务事件
-    JOB_EVENT_DELETE = 2
+    JobEventDelete = 2
 )
