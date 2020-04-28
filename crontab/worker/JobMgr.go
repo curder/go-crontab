@@ -69,7 +69,7 @@ func (j *JobMgr) watchJobs() (err error) {
         watchStartRevision int64
         watchChan          clientv3.WatchChan
         watchResponse      clientv3.WatchResponse
-        watchEvent         clientv3.Event
+        watchEvent         *clientv3.Event
         jobName            string
         jobEvent           *common.JobEvent
     )
@@ -85,7 +85,8 @@ func (j *JobMgr) watchJobs() (err error) {
             // 构建任务
             jobEvent = common.BuildJobEvent(common.JobEventSave, job)
 
-            // TODO 把任务同步给Scheduler（调度协程）
+            // 把任务同步给Scheduler（调度协程）
+            GScheduler.PushJobEvent(jobEvent)
         }
     }
 
@@ -94,11 +95,11 @@ func (j *JobMgr) watchJobs() (err error) {
         // 从当前版本的后续版本监听
         watchStartRevision = getResponse.Header.Revision + 1
         // 监听/cron/jobs目录变化
-        watchChan = j.watcher.Watch(context.TODO(), common.JobSaveDir, clientv3.WithRev(watchStartRevision))
+        watchChan = j.watcher.Watch(context.TODO(), common.JobSaveDir, clientv3.WithRev(watchStartRevision), clientv3.WithPrefix())
 
         // 处理监听事件
         for watchResponse = range watchChan {
-            for watchEvent = range watchResponse.Events {
+            for _, watchEvent = range watchResponse.Events {
                 switch watchEvent.Type {
                 case mvccpb.PUT: // 保存任务
                     // 反序列化
@@ -110,8 +111,9 @@ func (j *JobMgr) watchJobs() (err error) {
                     jobEvent = common.BuildJobEvent(common.JobEventSave, job)
 
                     // 推送给scheduler
+                    GScheduler.PushJobEvent(jobEvent)
                 case mvccpb.DELETE: // 删除任务
-                    // todo 推送一个删除事件给scheduler
+                    // 推送一个删除事件给scheduler
 
                     jobName = common.ExtraJobName(string(watchEvent.Kv.Key))
 
@@ -119,7 +121,8 @@ func (j *JobMgr) watchJobs() (err error) {
                     //  构建删除event事件
                     jobEvent = common.BuildJobEvent(common.JobEventDelete, job)
 
-                    // TODO 推送给scheduler
+                    // 推送给scheduler
+                    GScheduler.PushJobEvent(jobEvent)
                 }
             }
         }

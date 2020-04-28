@@ -2,14 +2,15 @@ package main
 
 import (
     "flag"
+    "fmt"
     "github.com/curder/go-crontab/crontab/worker"
     "runtime"
+    "time"
 )
 
 var (
     configFile string // 配置文件所在路径
 )
-
 
 func main() {
     // 解析命令行参数
@@ -27,8 +28,18 @@ func main() {
     if err = worker.InitConfig(configFile); err != nil {
         goto ERR
     }
+    // 任务etcd管理器
+    if err = worker.InitJobMgr(); err != nil {
+        goto ERR
+    }
+
+    // 正常退出
+    for {
+        time.Sleep(1 * time.Second)
+    }
 
 ERR:
+    fmt.Printf("err: %s", err)
 }
 
 // 解析命令行参数
